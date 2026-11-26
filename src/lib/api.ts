@@ -52,7 +52,7 @@ export type ApiTransaction = { id: string; contactId: string; contactName: strin
 export const api = {
   people: () => apiRequest<ApiContact[]>("/contacts"),
   person: (id: string) => apiRequest<ApiContact & { transactions: ApiTransaction[] }>(`/contacts/${id}`),
-  createPerson: (body: { fullName: string; phoneNumber: string; avatarUrl?: string; note?: string }) => apiRequest<ApiContact>("/contacts", { method: "POST", body }),
+  createPerson: (body: { fullName: string; phoneNumber: string; note?: string }) => apiRequest<ApiContact>("/contacts", { method: "POST", body }),
   updatePerson: (id: string, body: { fullName: string; phoneNumber: string; avatarUrl?: string; note?: string }) => apiRequest<ApiContact>(`/contacts/${id}`, { method: "PATCH", body }),
   deletePerson: (id: string) => apiRequest<{ success: boolean }>(`/contacts/${id}`, { method: "DELETE" }),
   activity: (filter?: string, month?: string) => apiRequest<ApiTransaction[]>(`/transactions/activity?${new URLSearchParams({ ...(filter && filter !== "all" ? { filter } : {}), ...(month ? { month } : {}) })}`),

@@ -5,10 +5,12 @@ import Link from "next/link";
 import { api } from "../../lib/api";
 import { makeInitials } from "../../lib/people";
 import { useLanguage } from "./LanguageProvider";
+import Icon from "./Icon";
 
 export default function PageHeader() {
 	const [fullName, setFullName] = useState("");
 	const [avatarUrl, setAvatarUrl] = useState("");
+	const [profileLoading, setProfileLoading] = useState(true);
 	const { t, language } = useLanguage();
 
 	useEffect(() => {
@@ -16,7 +18,9 @@ export default function PageHeader() {
 		void api.profile().then((profile) => {
 			setFullName(profile.fullName.trim());
 			setAvatarUrl(profile.avatarUrl || cachedAvatar);
-		}).catch(() => { if (cachedAvatar) setAvatarUrl(cachedAvatar); });
+		}).catch(() => { if (cachedAvatar) setAvatarUrl(cachedAvatar); }).finally(() => {
+			setProfileLoading(false);
+		});
 	}, []);
 
 	const firstName = fullName.split(/\s+/)[0] || "there";
@@ -29,13 +33,22 @@ export default function PageHeader() {
 					<span className="grid size-[30px] place-items-center text-[#b7f4ce]"><img className="size-[30px] object-contain" src="/images/dashboard-logo.png" alt="" /></span>
 					<span>Lenden</span>
 				</Link>
-				<Link className="grid size-[38px] place-items-center rounded-full border-2 border-white/30 bg-[#e8f7ed] text-[12px] font-bold text-[#07563f]" id="profile" href="/profile" aria-label="Your profile">
-					{avatarUrl ? <img className="size-full rounded-full object-cover" src={avatarUrl} alt="Profile avatar" /> : <span aria-hidden="true">{initials}</span>}
-				</Link>
+				<div className="flex items-center gap-2">
+					<Link className="grid size-10 place-items-center rounded-[10px] text-white transition hover:bg-white/10" href="/notifications" aria-label="Notifications">
+						<Icon name="bell" size={21} />
+					</Link>
+					<Link className="grid size-[38px] place-items-center rounded-full border-2 border-white/30 bg-[#e8f7ed] text-[12px] font-bold text-[#07563f]" id="profile" href="/profile" aria-label="Your profile">
+						{profileLoading ? <span aria-hidden="true" className="size-full animate-pulse rounded-full bg-white/50" /> : avatarUrl ? <img className="size-full rounded-full object-cover" src={avatarUrl} alt="Profile avatar" /> : <span aria-hidden="true">{initials}</span>}
+					</Link>
+				</div>
 			</div>
 			<div className="mt-[21px] flex flex-col items-start gap-[5px]">
 				<p className="m-0 text-[10px] font-bold tracking-[1px] text-[#b8dfca] max-[700px]:hidden">{t("Your money, in balance")}</p>
-				<h1 className="m-0 text-[28px] font-semibold leading-[1.2]">{language === "हिन्दी" ? `नमस्ते, ${firstName}` : `Hi, ${firstName}`}</h1>
+				{profileLoading ? (
+					<div aria-label="Loading profile" className="h-[34px] w-[190px] animate-pulse rounded-lg bg-white/20" />
+				) : (
+					<h1 className="m-0 text-[28px] font-semibold leading-[1.2]">{language === "हिन्दी" ? `नमस्ते, ${firstName}` : `Hi, ${firstName}`}</h1>
+				)}
 			</div>
 		</header>
 	);

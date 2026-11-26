@@ -90,7 +90,7 @@ export default function NewPersonPage() {
     setError("");
 
     try {
-      const person = await api.createPerson({ fullName: cleanName, phoneNumber: `${countryCode}${cleanPhone}`, avatarUrl: avatar || undefined, note: note.trim() || undefined });
+      const person = await api.createPerson({ fullName: cleanName, phoneNumber: `${countryCode}${cleanPhone}`, note: note.trim() || undefined });
       // Clear the form before navigating so a cached route can never restore
       // the submitted person or its loading state.
       resetForm();

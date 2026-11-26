@@ -207,12 +207,6 @@ export default function LendenLandingClient({
     showToast(`Added ${formatINR(roundedAmount)} for ${trimmedName}`);
   };
 
-  const handleResetDemo = () => {
-    setDemoContacts(INITIAL_CONTACTS.map((c) => ({ ...c })));
-    setSimFeedback("");
-    showToast("Demo ledger reset to defaults");
-  };
-
   const handleCopySupportEmail = async () => {
     const email = "hello@apearix.com";
     try {
@@ -258,7 +252,7 @@ export default function LendenLandingClient({
   const modalCopy = getModalCopy(downloadModalPlatform);
 
   return (
-    <div className="min-h-screen bg-[#edf4ef] text-[#17231d] antialiased selection:bg-[#d5f86c] selection:text-[#064a37] overflow-x-hidden">
+    <div className="min-h-screen bg-[#edf4ef] text-[#17231d] antialiased selection:bg-[#d5f86c] selection:text-[#064a37] overflow-x-hidden pt-16 sm:pt-20">
       <style jsx global>{`
         .lenden-balance-gradient {
           background: linear-gradient(115deg, #0b8159 0%, #139264 100%);
@@ -300,7 +294,7 @@ export default function LendenLandingClient({
       {/* ===================================================================== */}
       {/* 1. STICKY GLASSMORPHISM NAVBAR                                        */}
       {/* ===================================================================== */}
-      <header className="sticky top-0 z-40 w-full bg-[#edf4ef]/85 backdrop-blur-md border-b border-[#d6e4da] transition-all">
+      <header className="fixed inset-x-0 top-0 z-40 w-full bg-[#edf4ef]/85 backdrop-blur-md border-b border-[#d6e4da] transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Brand Logo Mark */}
@@ -317,22 +311,19 @@ export default function LendenLandingClient({
                 <span className="font-extrabold text-xl tracking-tight text-[#102b24] leading-none">
                   Lenden
                 </span>
-                <span className="text-[11px] font-medium text-[#6a7971] tracking-wide mt-0.5">
+                <span className="text-[11px] font-medium text-[#087354] tracking-wide mt-0.5">
                    Har Lenden Ka Clear Hisab
                 </span>
               </div>
             </a>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-[#374640]">
+            <nav className="hidden lg:flex items-center gap-8 text-base font-medium text-[#374640]">
               <a href="#features" className="hover:text-[#087354] transition-colors">
                 Features
               </a>
               <a href="#how-it-works" className="hover:text-[#087354] transition-colors">
                 How It Works
-              </a>
-              <a href="#live-preview" className="hover:text-[#087354] transition-colors">
-                Live Preview
               </a>
               <a href="#why-lenden" className="hover:text-[#087354] transition-colors">
                 Why Lenden
@@ -384,13 +375,6 @@ export default function LendenLandingClient({
                 className="px-3 py-2.5 rounded-xl hover:bg-[#f4f8f5]"
               >
                 How It Works
-              </a>
-              <a
-                href="#live-preview"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl hover:bg-[#f4f8f5]"
-              >
-                Live Preview
               </a>
               <a
                 href="#why-lenden"
@@ -561,13 +545,6 @@ export default function LendenLandingClient({
                     <span className="w-2 h-2 rounded-full bg-[#0c8058] animate-ping" />
                     Interactive Demo — Try adding an entry!
                   </span>
-                  <button
-                    type="button"
-                    onClick={handleResetDemo}
-                    className="text-xs font-medium text-[#6a7971] hover:text-[#087354] underline cursor-pointer"
-                  >
-                    Reset demo
-                  </button>
                 </div>
 
                 {/* Mobile App Frame */}
@@ -1248,7 +1225,7 @@ export default function LendenLandingClient({
                 <span className="font-extrabold text-xl tracking-tight text-[#102b24] leading-none">
                   Lenden
                 </span>
-                <span className="text-[11px] font-medium text-[#6a7971] tracking-wide mt-0.5">
+                <span className="text-[11px] font-medium text-[#087354] tracking-wide mt-0.5">
                    Har Lenden Ka Clear Hisab
                 </span>
               </div>

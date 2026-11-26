@@ -14,9 +14,10 @@ import ConfirmModal from "../../../components/common/ConfirmModal";
 export default function ProfilePage() {
   const router = useRouter();
   const [language, setLanguage] = useState("English");
-  const [name, setName] = useState("Loading...");
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [profileLoading, setProfileLoading] = useState(true);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -29,7 +30,7 @@ export default function ProfilePage() {
       setAvatarUrl(profile.avatarUrl || cachedAvatar);
       setLanguage(profile.language);
       setAppLanguage(profile.language as "English" | "हिन्दी");
-    }).catch(() => { if (cachedAvatar) setAvatarUrl(cachedAvatar); });
+    }).catch(() => { if (cachedAvatar) setAvatarUrl(cachedAvatar); }).finally(() => setProfileLoading(false));
   }, [setAppLanguage]);
 
   return (
@@ -38,8 +39,19 @@ export default function ProfilePage() {
         <MobilePageHeader title="Profile" className="min-[701px]:top-0" />
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[76px] pt-[70px] min-[701px]:px-[38px] min-[701px]:pb-[48px] min-[701px]:pt-[104px]">
           <section className="flex min-h-[108px] items-center gap-4 rounded-[17px] border border-[#dcebe0] bg-[linear-gradient(110deg,#f4fbf6,#e8f7ed)] px-5 pb-3 pt-3 shadow-[0_5px_18px_rgba(22,76,48,.05)] min-[701px]:min-h-[150px] min-[701px]:px-7 max-[480px]:min-h-[124px] max-[480px]:gap-[13px]" aria-label="Account profile">
-            <div className="grid size-[72px] flex-none place-items-center overflow-hidden rounded-full border-2 border-[#08714f] bg-[#d7f2e1] text-[25px] font-bold text-[#08714f] min-[701px]:size-[92px] min-[701px]:text-[31px]">{avatarUrl ? <img className="size-full object-cover" src={avatarUrl} alt="Profile avatar" /> : makeInitials(name)}</div>
-            <div><h2 className="m-0 text-[20px] font-bold leading-[1.2] text-[#18251f] min-[701px]:text-[25px] max-[480px]:text-[19px]">{name}</h2><p className="m-0 mt-[7px] text-[15px] text-[#56635c] min-[701px]:text-[16px]">{phone}</p></div>
+            {profileLoading ? (
+              <div aria-label="Loading profile" className="size-[72px] flex-none animate-pulse rounded-full bg-[#cde8d6] min-[701px]:size-[92px]" />
+            ) : (
+              <div className="grid size-[72px] flex-none place-items-center overflow-hidden rounded-full border-2 border-[#08714f] bg-[#d7f2e1] text-[25px] font-bold text-[#08714f] min-[701px]:size-[92px] min-[701px]:text-[31px]">{avatarUrl ? <img className="size-full object-cover" src={avatarUrl} alt="Profile avatar" /> : makeInitials(name)}</div>
+            )}
+            {profileLoading ? (
+              <div className="grid gap-2" aria-hidden="true">
+                <div className="h-6 w-36 animate-pulse rounded-md bg-[#cde8d6]" />
+                <div className="h-4 w-28 animate-pulse rounded-md bg-[#dceee2]" />
+              </div>
+            ) : (
+              <div><h2 className="m-0 text-[20px] font-bold leading-[1.2] text-[#18251f] min-[701px]:text-[25px] max-[480px]:text-[19px]">{name}</h2><p className="m-0 mt-[7px] text-[15px] text-[#56635c] min-[701px]:text-[16px]">{phone}</p></div>
+            )}
           </section>
 
           <div className="mt-5 grid gap-[15px] min-[701px]:grid-cols-2 min-[701px]:gap-5">

@@ -14,6 +14,7 @@ export default function Home() {
 	const toReceive = people.filter((person) => person.direction === "receive").reduce((total, person) => total + person.amount, 0);
 	const toPay = people.filter((person) => person.direction === "pay").reduce((total, person) => total + person.amount, 0);
 	const netBalance = toReceive - toPay;
+	const outstandingPeople = people.filter((person) => person.amount > 0);
 	return (
 		<div className="min-h-screen bg-[#f4f8f5] p-0 min-[701px]:bg-[radial-gradient(#cbded2_0.8px,transparent_0.8px)] min-[701px]:[background-size:19px_19px] min-[701px]:px-5 min-[701px]:!py-0">
 			<div className="mx-auto flex h-dvh w-full min-h-0 flex-col overflow-hidden bg-white min-[701px]:w-[min(100%,1120px)] min-[701px]:min-h-[760px] min-[701px]:rounded-[20px] min-[701px]:border min-[701px]:border-[#d6e4da] min-[701px]:shadow-[0_16px_48px_#164c3020]">
@@ -51,7 +52,7 @@ export default function Home() {
 						</div>
 					</section>
 
-					<div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.45fr)_minmax(260px,.8fr)] items-start gap-9 overflow-y-auto overscroll-contain max-[700px]:grid-cols-1 max-[700px]:gap-5">
+					<div className="grid min-h-0 flex-1 grid-cols-1 items-start overflow-y-auto overscroll-contain">
 						<section id="people" aria-labelledby="people-title">
 							<div className="mb-3 flex items-center justify-between">
 								<h2 className="m-0 text-[17px] font-bold max-[700px]:text-base" id="people-title">{t("Your people")}</h2>
@@ -60,7 +61,7 @@ export default function Home() {
 								</Link>
 							</div>
 							<div className="border-t border-[var(--line)]" id="activity">
-								{people.slice(0, 3).map((person, index) => (
+								{outstandingPeople.length > 0 ? outstandingPeople.slice(0, 3).map((person, index) => (
 									<Link className="flex min-h-[63px] items-center gap-3 border-b border-[var(--line)] transition hover:bg-[#f8fcf9] max-[700px]:min-h-[57px] max-[700px]:gap-2.5" href={`/people/${person.id}`} key={`${person.id}-${index}`}>
 										<span className="grid size-[39px] flex-none place-items-center rounded-full border border-[#cde8d6] bg-[#e1f3e7] text-xs font-bold text-[#0d694c] max-[700px]:size-[37px]">{person.initials}</span>
 										<span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{person.name}</span>
@@ -72,21 +73,10 @@ export default function Home() {
 										</span>
 										<Icon name="chevron" size={18} className="text-[#4a5b51]" />
 									</Link>
-								))}
+								)) : <p className="m-0 border-b border-[var(--line)] py-5 text-center text-sm text-[var(--muted)]">No outstanding balances</p>}
 							</div>
 						</section>
 
-						<aside className="pt-px max-[700px]:pb-px" aria-labelledby="reminder-title">
-							<h2 className="mb-3 mt-0 text-[17px] font-bold max-[700px]:hidden" id="reminder-title">Coming up</h2>
-							<a className="mb-4 flex min-h-[56px] items-center gap-[11px] rounded-xl border border-[#cbeed4] bg-[linear-gradient(110deg,#e6f8eb,#d9f5df)] px-3 py-[11px] text-[#173a29] transition hover:bg-[#d3f1dc]" href="/activity">
-								<span className="text-[#176f4e]"><Icon name="bell" size={22} /></span>
-								<span className="min-w-0 flex-1">
-									<strong className="block text-xs font-bold">1 reminder due today</strong>
-									<span className="mt-[3px] block text-[11px] text-[#52645a]">Priya Verma · {formatRupees(2500)}</span>
-								</span>
-								<Icon name="chevron" size={18} />
-							</a>
-						</aside>
 					</div>
 				</main>
 			</div>
