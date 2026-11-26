@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Footer from "../../../../components/common/Footer";
 import Icon from "../../../../components/common/Icon";
@@ -18,6 +18,38 @@ export default function NewPersonPage() {
   const [cropSource, setCropSource] = useState("");
   const [cropOpen, setCropOpen] = useState(false);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [fieldsReady, setFieldsReady] = useState(false);
+  const savingRef = useRef(false);
+
+  function resetForm() {
+    setName("");
+    setCountryCode("+91");
+    setPhone("");
+    setNote("");
+    setAvatar("");
+    setCropSource("");
+    setCropOpen(false);
+    setError("");
+    setSaving(false);
+    setFieldsReady(false);
+    savingRef.current = false;
+  }
+
+  useEffect(() => {
+    function handlePageShow(event: PageTransitionEvent) {
+      // Mobile browsers can restore the previous form and React state from
+      // the back-forward cache when returning to this route.
+      if (event.persisted) resetForm();
+    }
+
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("lenden:new-person", resetForm);
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("lenden:new-person", resetForm);
+    };
+  }, []);
 
   function choosePhoto(file?: File) {
     if (!file) return;
@@ -40,6 +72,8 @@ export default function NewPersonPage() {
 
   async function savePerson(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (savingRef.current) return;
+
     const cleanName = name.trim();
     const cleanPhone = phone.replace(/\D/g, "");
     if (!cleanName) {
@@ -51,14 +85,28 @@ export default function NewPersonPage() {
       return;
     }
 
-    try { const person = await api.createPerson({ fullName: cleanName, phoneNumber: `${countryCode}${cleanPhone}`, note: note.trim() || undefined }); router.push(`/people/${person.id}`); } catch (error) { setError(error instanceof Error ? error.message : "Unable to save person."); }
+    savingRef.current = true;
+    setSaving(true);
+    setError("");
+
+    try {
+      const person = await api.createPerson({ fullName: cleanName, phoneNumber: `${countryCode}${cleanPhone}`, avatarUrl: avatar || undefined, note: note.trim() || undefined });
+      // Clear the form before navigating so a cached route can never restore
+      // the submitted person or its loading state.
+      resetForm();
+      router.push(`/people/${person.id}`);
+    } catch (error) {
+      savingRef.current = false;
+      setSaving(false);
+      setError(error instanceof Error ? error.message : "Unable to save person.");
+    }
   }
 
   return (
     <div className="min-h-screen bg-[#f4f8f5] p-0 min-[701px]:px-5 min-[701px]:py-0">
       <div className="mx-auto flex h-dvh w-full min-h-0 flex-col overflow-hidden bg-white min-[701px]:w-[min(100%,1120px)] min-[701px]:min-h-[760px] min-[701px]:rounded-[20px] min-[701px]:border min-[701px]:border-[#d6e4da]">
         <MobilePageHeader title="Add person" backHref="/people" action={<Icon name="back" size={25} />} />
-        <main className="min-h-0 flex-1 overflow-y-auto px-[18px] pb-[104px] pt-[72px]"><form className="flex min-h-full flex-col gap-[14px]" onSubmit={savePerson}>
+        <main className="min-h-0 flex-1 overflow-y-auto px-[18px] pb-[104px] pt-[72px]"><form autoComplete="new-password" className="flex min-h-full flex-col gap-[14px]" onSubmit={savePerson}>
             <div className="relative mx-auto my-2 grid size-[116px] flex-none place-items-center">
               <div
                 aria-label={name ? `${name} profile photo` : "Profile photo"}
@@ -74,12 +122,14 @@ export default function NewPersonPage() {
             <label className="grid gap-1.5 text-[13px] font-semibold text-[#293a30]">
               <span>Full name <span className="text-[#c0393b]">*</span></span>
               <input className="h-[43px] w-full rounded-[9px] border border-[#d7e0da] bg-white px-3 text-sm outline-none focus:border-[#57b987] focus:shadow-[0_0_0_3px_#dff3e6]"
-                autoComplete="name"
-                autoFocus
+                autoComplete="new-password"
                 maxLength={70}
+                name="new-person-name"
                 onChange={(event) => setName(event.target.value)}
+                onFocus={() => setFieldsReady(true)}
                 placeholder="Enter full name"
                 required
+                readOnly={!fieldsReady}
                 value={name}
               />
             </label>
@@ -93,12 +143,15 @@ export default function NewPersonPage() {
                   <option value="+61">+61</option>
                 </select>
                 <input className="h-[46px] min-w-0 w-full border-0 bg-transparent px-3 text-[17px] text-[#17231d] outline-none placeholder:text-[#7d8581]"
-                  autoComplete="tel-national"
+                  autoComplete="new-password"
                   inputMode="numeric"
                   maxLength={10}
+                  name="new-person-phone"
                   onChange={(event) => { setPhone(event.target.value.replace(/\D/g, "").slice(0, 10)); setError(""); }}
+                  onFocus={() => setFieldsReady(true)}
                   placeholder="Enter your mobile number"
                   required
+                  readOnly={!fieldsReady}
                   type="tel"
                   value={phone}
                 />
@@ -115,7 +168,15 @@ export default function NewPersonPage() {
               <span className="justify-self-end text-[11px] text-[var(--muted)]">{note.length}/100</span>
             </label>
             {error && <p className="m-0 text-xs text-[var(--red-700)]" role="alert">{error}</p>}
-            <button className="mt-auto min-h-[47px] rounded-[10px] border-0 bg-[linear-gradient(110deg,#0b8159,#08734f)] px-4 text-sm font-bold text-white" type="submit">Save person</button>
+            <button
+              aria-busy={saving}
+              className="mt-auto flex min-h-[47px] items-center justify-center gap-2 rounded-[10px] border-0 bg-[linear-gradient(110deg,#0b8159,#08734f)] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-80"
+              disabled={saving}
+              type="submit"
+            >
+              {saving && <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+              {saving ? "Saving..." : "Save person"}
+            </button>
           </form>
         </main>
       </div>

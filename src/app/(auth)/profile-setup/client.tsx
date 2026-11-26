@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import { api } from "../../../lib/api";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { api, auth } from "../../../lib/api";
 import Icon from "../../../components/common/Icon";
 import ImageCropModal from "../../../components/common/ImageCropModal";
 
@@ -14,6 +14,8 @@ export default function ProfileSetupClient() {
 	const [cropSource, setCropSource] = useState("");
 	const [cropOpen, setCropOpen] = useState(false);
 	const [message, setMessage] = useState("");
+	const [saving, setSaving] = useState(false);
+	const savingRef = useRef(false);
 
 	useEffect(() => () => {
 		if (photoUrl) URL.revokeObjectURL(photoUrl);
@@ -38,13 +40,24 @@ export default function ProfileSetupClient() {
 
 	async function startUsingLenden(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		if (savingRef.current) return;
 		const name = fullName.trim();
 		if (name.length < 2) {
 			setMessage("Enter your full name to continue.");
 			return;
 		}
 
-		try { await api.updateProfile({ fullName: name }); router.replace("/dashboard"); } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to save profile."); }
+		savingRef.current = true;
+		setSaving(true);
+		try {
+			await api.updateProfile({ fullName: name, avatarUrl: photoUrl || undefined });
+			auth.saveAvatar(photoUrl);
+			router.replace("/dashboard");
+		} catch (error) {
+			savingRef.current = false;
+			setSaving(false);
+			setMessage(error instanceof Error ? error.message : "Unable to save profile.");
+		}
 	}
 
 	return (
@@ -99,7 +112,10 @@ export default function ProfileSetupClient() {
 					/>
 
 					{message && <p className="m-0 text-[13px] leading-[1.4] text-[#9e3f36]" role="status">{message}</p>}
-					<button className="mt-[13px] min-h-[46px] rounded-[11px] border-0 bg-[#087354] text-[17px] font-bold text-white transition hover:bg-[#066448] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-3 focus-visible:outline-[#70bd91]" type="submit">Start using Lenden</button>
+					<button aria-busy={saving} className="mt-[13px] flex min-h-[46px] items-center justify-center gap-2 rounded-[11px] border-0 bg-[#087354] text-[17px] font-bold text-white transition hover:bg-[#066448] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-3 focus-visible:outline-[#70bd91] disabled:cursor-not-allowed disabled:opacity-80" disabled={saving} type="submit">
+						{saving && <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+						{saving ? "Saving..." : "Start using Lenden"}
+					</button>
 				</form>
 
 				<p className="m-[10px_0_0] flex items-center justify-center gap-[7px] text-[13px] text-[#4c5852]">

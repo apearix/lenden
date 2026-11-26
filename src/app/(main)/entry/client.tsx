@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Footer from "../../../components/common/Footer";
 import Icon from "../../../components/common/Icon";
@@ -24,6 +24,9 @@ export default function AddEntryPage() {
   const [date, setDate] = useState("");
   const [note, setNote] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const savingRef = useRef(false);
   const selectedPerson = useMemo(() => people.find((person) => person.id === personId), [people, personId]);
 
   useEffect(() => {
@@ -35,11 +38,21 @@ export default function AddEntryPage() {
 
   async function saveEntry(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (savingRef.current) return;
     const parsedAmount = Number(amount);
     if (!selectedPerson || !Number.isFinite(parsedAmount) || parsedAmount <= 0) return;
 
-    await api.addEntry({ contactId: selectedPerson.id, type: kind === "given" ? "I_GAVE" : "I_TOOK", amount: parsedAmount, date, note: note.trim() || undefined, dueDate: dueDate || undefined });
-    router.push(`/people/${selectedPerson.id}`);
+    savingRef.current = true;
+    setSaving(true);
+    setError("");
+    try {
+      await api.addEntry({ contactId: selectedPerson.id, type: kind === "given" ? "I_GAVE" : "I_TOOK", amount: parsedAmount, date, note: note.trim() || undefined, dueDate: dueDate || undefined });
+      router.push(`/people/${selectedPerson.id}`);
+    } catch (cause) {
+      savingRef.current = false;
+      setSaving(false);
+      setError(cause instanceof Error ? cause.message : "Unable to save entry.");
+    }
   }
 
   return (
@@ -83,7 +96,11 @@ export default function AddEntryPage() {
               {t("Due date")} <span className="optional-label">({t("optional")})</span>
               <span className="flex h-[43px] items-center gap-2 rounded-[9px] border border-[#d7e0da] px-3"><Icon name="calendar" size={17} /><input className="min-w-0 flex-1 border-0 bg-transparent text-sm outline-none" type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></span>
             </label>
-            <button className="mt-auto min-h-[47px] rounded-[10px] border-0 bg-[linear-gradient(110deg,#0b8159,#08734f)] px-4 text-sm font-bold text-white transition hover:brightness-105" type="submit">{t("Save entry")}</button>
+            {error && <p className="m-0 text-xs text-[var(--red-700)]" role="alert">{error}</p>}
+            <button aria-busy={saving} className="mt-auto flex min-h-[47px] items-center justify-center gap-2 rounded-[10px] border-0 bg-[linear-gradient(110deg,#0b8159,#08734f)] px-4 text-sm font-bold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-80" disabled={saving} type="submit">
+              {saving && <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+              {saving ? "Saving..." : t("Save entry")}
+            </button>
             <p className="m-0 flex items-center justify-center gap-1 text-xs text-[var(--muted)]"><Icon name="info" size={14} /> Record only · No money transfer</p>
           </form>
         </main>

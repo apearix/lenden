@@ -8,12 +8,15 @@ import { useLanguage } from "./LanguageProvider";
 
 export default function PageHeader() {
 	const [fullName, setFullName] = useState("");
+	const [avatarUrl, setAvatarUrl] = useState("");
 	const { t, language } = useLanguage();
 
 	useEffect(() => {
+		const cachedAvatar = localStorage.getItem("lenden_avatar_url") || "";
 		void api.profile().then((profile) => {
 			setFullName(profile.fullName.trim());
-		}).catch(() => undefined);
+			setAvatarUrl(profile.avatarUrl || cachedAvatar);
+		}).catch(() => { if (cachedAvatar) setAvatarUrl(cachedAvatar); });
 	}, []);
 
 	const firstName = fullName.split(/\s+/)[0] || "there";
@@ -27,7 +30,7 @@ export default function PageHeader() {
 					<span>Lenden</span>
 				</Link>
 				<Link className="grid size-[38px] place-items-center rounded-full border-2 border-white/30 bg-[#e8f7ed] text-[12px] font-bold text-[#07563f]" id="profile" href="/profile" aria-label="Your profile">
-					<span aria-hidden="true">{initials}</span>
+					{avatarUrl ? <img className="size-full rounded-full object-cover" src={avatarUrl} alt="Profile avatar" /> : <span aria-hidden="true">{initials}</span>}
 				</Link>
 			</div>
 			<div className="mt-[21px] flex flex-col items-start gap-[5px]">

@@ -21,7 +21,16 @@ export default function ProfilePage() {
   const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const { t, setLanguage: setAppLanguage } = useLanguage();
-  useEffect(() => { void api.profile().then((profile) => { setName(profile.fullName); setPhone(profile.phoneNumber || profile.email || ""); setAvatarUrl(profile.avatarUrl || ""); setLanguage(profile.language); setAppLanguage(profile.language as "English" | "हिन्दी"); }).catch(() => undefined); }, [setAppLanguage]);
+  useEffect(() => {
+    const cachedAvatar = localStorage.getItem("lenden_avatar_url") || "";
+    void api.profile().then((profile) => {
+      setName(profile.fullName);
+      setPhone(profile.phoneNumber || profile.email || "");
+      setAvatarUrl(profile.avatarUrl || cachedAvatar);
+      setLanguage(profile.language);
+      setAppLanguage(profile.language as "English" | "हिन्दी");
+    }).catch(() => { if (cachedAvatar) setAvatarUrl(cachedAvatar); });
+  }, [setAppLanguage]);
 
   return (
     <div className="min-h-dvh bg-[#edf4ef] p-2.5 min-[701px]:bg-[radial-gradient(#cbded2_0.8px,transparent_0.8px)] min-[701px]:[background-size:19px_19px] min-[701px]:px-5 min-[701px]:py-0 max-[700px]:p-0">

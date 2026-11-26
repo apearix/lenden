@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { auth } from "../../../lib/api";
 
 export default function CreatePasswordClient() {
@@ -12,12 +12,24 @@ export default function CreatePasswordClient() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState("");
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
 
   async function createPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (savingRef.current) return;
     if (password.length < 8) return setMessage("Password must be at least 8 characters.");
     if (password !== confirmPassword) return setMessage("Passwords do not match.");
-    try { await auth.setPassword(password); router.replace("/profile-setup"); } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to create password."); }
+    savingRef.current = true;
+    setSaving(true);
+    try {
+      await auth.setPassword(password);
+      router.replace("/profile-setup");
+    } catch (error) {
+      savingRef.current = false;
+      setSaving(false);
+      setMessage(error instanceof Error ? error.message : "Unable to create password.");
+    }
   }
 
   return (
@@ -34,7 +46,10 @@ export default function CreatePasswordClient() {
           <label className="mt-1 text-[14px] font-bold text-[#202a25]" htmlFor="confirm-password">Confirm password <span className="text-[#c0393b]">*</span></label>
           <div className="relative"><input className="h-12 w-full rounded-[10px] border-[1.5px] border-[#c7d0cb] bg-white px-3 pr-12 text-[17px] outline-none focus:border-[#08714f]" autoComplete="new-password" id="confirm-password" minLength={8} onChange={(event) => { setConfirmPassword(event.target.value); setMessage(""); }} placeholder="Re-enter your password" required type={showConfirmPassword ? "text" : "password"} value={confirmPassword} /><button aria-label={showConfirmPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#08714f]" onClick={() => setShowConfirmPassword((current) => !current)} type="button"><svg className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden="true">{showConfirmPassword ? <><path d="M3 3l18 18" /><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" /><path d="M9.9 4.3A10.8 10.8 0 0 1 12 4c5.2 0 8.7 4 9.8 6a11.8 11.8 0 0 1-3.1 3.5M6.2 6.2C4.4 7.4 3.1 9.1 2.2 10c1.1 2 4.6 6 9.8 6 1 0 2-.2 2.9-.5" /></> : <><path d="M2.2 12s3.5-6 9.8-6 9.8 6 9.8 6-3.5 6-9.8 6-9.8-6-9.8-6Z" /><circle cx="12" cy="12" r="2.5" /></>}</svg></button></div>
           {message && <p className="m-0 text-[13px] text-[#9e3f36]" role="status">{message}</p>}
-          <button className="mt-3 min-h-[47px] rounded-[11px] bg-[#087354] text-[17px] font-bold text-white" type="submit">Create password</button>
+          <button aria-busy={saving} className="mt-3 flex min-h-[47px] items-center justify-center gap-2 rounded-[11px] bg-[#087354] text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-80" disabled={saving} type="submit">
+            {saving && <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+            {saving ? "Saving..." : "Create password"}
+          </button>
         </form>
       </section>
     </main>

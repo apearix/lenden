@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent } from "react";
 import { auth } from "../../../lib/api";
 
 export default function RegisterClient() {
@@ -13,7 +13,18 @@ export default function RegisterClient() {
   const [otpRequested, setOtpRequested] = useState(false);
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const otpInputs = useRef<Array<HTMLInputElement | null>>([]);
+  const submittingRef = useRef(false);
+  const resendingRef = useRef(false);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setTimeout(() => setResendCooldown((current) => Math.max(current - 1, 0)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
 
   function updateOtp(index: number, value: string) {
     const digits = value.replace(/\D/g, "");
@@ -50,6 +61,11 @@ export default function RegisterClient() {
 
   async function requestOtp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submittingRef.current) return;
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const phoneNumber = `${countryCode}${phone}`;
+
     if (!otpRequested) {
       const digits = phone.replace(/\D/g, "");
 
@@ -57,12 +73,26 @@ export default function RegisterClient() {
         setMessage("Enter a 10-digit mobile number.");
         return;
       }
-      if (!email.trim().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      if (!normalizedEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
         setMessage("Enter a valid email address.");
         return;
       }
 
-      try { const result = await auth.sendOtp({ email: email.trim() }); setOtpRequested(true); setMessage(result.devOtpHint ? `OTP sent to your email. Development OTP: ${result.devOtpHint}` : "OTP sent successfully to your email."); } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to send OTP."); }
+      submittingRef.current = true;
+      setSubmitting(true);
+      try {
+        // Keep the identity used to create the OTP identical to the one used
+        // during verification. The API accepts both fields for registration.
+        const result = await auth.sendOtp({ email: normalizedEmail, phoneNumber });
+        setOtpRequested(true);
+        setResendCooldown(30);
+        setMessage(result.devOtpHint ? `OTP sent to your email. Development OTP: ${result.devOtpHint}` : "OTP sent successfully to your email.");
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Unable to send OTP.");
+      } finally {
+        submittingRef.current = false;
+        setSubmitting(false);
+      }
       return;
     }
 
@@ -71,8 +101,44 @@ export default function RegisterClient() {
       return;
     }
 
-    const identifier = { email: email.trim(), phoneNumber: `${countryCode}${phone}` };
-    try { const session = await auth.verifyOtp(identifier, otp.join("")); auth.saveSession(session, `${countryCode}${phone}`); router.replace("/create-password"); } catch (error) { setMessage(error instanceof Error ? error.message : "Invalid OTP."); }
+    const identifier = { email: normalizedEmail, phoneNumber };
+    const initialFullName = normalizedEmail.split("@")[0] || "Lenden User";
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      const session = await auth.verifyOtp(identifier, otp.join(""), initialFullName);
+      auth.saveSession(session, phoneNumber);
+      router.replace("/create-password");
+    } catch (error) {
+      submittingRef.current = false;
+      setSubmitting(false);
+      setMessage(error instanceof Error ? error.message : "Invalid OTP.");
+    }
+  }
+
+  async function resendOtp() {
+    if (!otpRequested || submittingRef.current || resendingRef.current || resendCooldown > 0) return;
+    const normalizedEmail = email.trim().toLowerCase();
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length !== 10 || !normalizedEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      setMessage("Enter a valid email address and 10-digit mobile number.");
+      return;
+    }
+
+    resendingRef.current = true;
+    setResending(true);
+    setMessage("");
+    try {
+      const result = await auth.sendOtp({ email: normalizedEmail, phoneNumber: `${countryCode}${digits}` });
+      setOtp(["", "", "", ""]);
+      setResendCooldown(30);
+      setMessage(result.devOtpHint ? `OTP resent. Development OTP: ${result.devOtpHint}` : "OTP resent successfully to your email.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to resend OTP.");
+    } finally {
+      resendingRef.current = false;
+      setResending(false);
+    }
   }
 
   return (
@@ -153,6 +219,14 @@ export default function RegisterClient() {
                   />
                 ))}
               </div>
+              <button
+                className="justify-self-end border-0 bg-transparent px-1 text-[13px] font-bold text-[#08714f] disabled:cursor-not-allowed disabled:text-[#8b9891]"
+                disabled={resending || resendCooldown > 0 || submitting}
+                onClick={() => void resendOtp()}
+                type="button"
+              >
+                {resending ? "Sending..." : resendCooldown > 0 ? `Resend OTP in ${resendCooldown}s` : "Resend OTP"}
+              </button>
             </div>
           )}
 
@@ -164,8 +238,9 @@ export default function RegisterClient() {
           </label>
 
           {message && <p className="m-0 text-[13px] leading-[1.4] text-[#9e3f36]" role="status">{message}</p>}
-          <button className="mt-2 min-h-[47px] rounded-[11px] border-0 bg-[#087354] text-[17px] font-bold text-white outline-offset-3 transition hover:bg-[#066448] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[#70bd91]" type="submit">
-            {otpRequested ? "Verify OTP" : "Send OTP"}
+          <button aria-busy={submitting} className="mt-2 flex min-h-[47px] cursor-pointer items-center justify-center gap-2 rounded-[11px] border-0 bg-[#087354] text-[17px] font-bold text-white outline-offset-3 transition hover:bg-[#066448] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[#70bd91] disabled:cursor-not-allowed disabled:opacity-80" disabled={submitting} type="submit">
+            {submitting && <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+            {submitting ? (otpRequested ? "Verifying..." : "Sending OTP...") : otpRequested ? "Verify OTP" : "Send OTP"}
           </button>
         </form>
 

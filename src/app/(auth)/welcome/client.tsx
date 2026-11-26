@@ -4,8 +4,8 @@ import Link from "next/link";
 
 export default function WelcomeClient() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-2 bg-[radial-gradient(ellipse_at_50%_40%,#fff_0%,#f7f8f5_76%,#eef1ed_100%)] px-5 pb-5 pt-4 text-[#102b24] max-[480px]:p-0 max-[480px]:bg-white">
-      <section className="flex h-[min(650px,calc(100dvh-74px))] min-h-0 w-full max-w-[356px] flex-col items-center overflow-hidden rounded-[23px] border border-[#d2dfd9] bg-white/[.94] px-[18px] pb-[13px] pt-4 text-center shadow-[0_12px_30px_rgba(27,74,56,.1)] max-[480px]:h-dvh max-[480px]:max-w-none max-[480px]:rounded-none max-[480px]:border-0 max-[480px]:shadow-none" aria-labelledby="welcome-title">
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-2 overflow-hidden bg-[radial-gradient(ellipse_at_50%_40%,#fff_0%,#f7f8f5_76%,#eef1ed_100%)] px-5 pb-5 pt-4 text-[#102b24] max-[480px]:h-dvh max-[480px]:min-h-0 max-[480px]:p-0 max-[480px]:bg-white">
+      <section className="flex h-[min(650px,calc(100dvh-74px))] min-h-0 w-full max-w-[356px] flex-col items-center overflow-hidden rounded-[23px] border border-[#d2dfd9] bg-white/[.94] px-[18px] pb-[13px] pt-4 text-center shadow-[0_12px_30px_rgba(27,74,56,.1)] max-[480px]:h-dvh max-[480px]:max-w-none max-[480px]:rounded-none max-[480px]:border-0 max-[480px]:pb-[calc(13px+env(safe-area-inset-bottom))] max-[480px]:shadow-none" aria-labelledby="welcome-title">
         <header className="flex min-h-[54px] flex-none items-center justify-center gap-[9px] text-[32px] font-extrabold">
           <img className="block size-[52px] object-contain" src="/images/logo.png" alt="" />
           <span>Lenden</span>
@@ -16,7 +16,7 @@ export default function WelcomeClient() {
         </div>
 
         <div className="flex-none">
-          <h1 className="m-0 text-[29px] font-extrabold leading-[1.03] max-[360px]:text-[27px]" id="welcome-title">Every rupee.<br />Clearly tracked.</h1>
+          <h1 className="m-0 text-[29px] font-extrabold leading-[1.03] max-[360px]:text-[27px]" id="welcome-title">Har Lenden ka<br />Clear Hisaab</h1>
           <p className="m-0 mt-[7px] text-[14px] leading-[1.3] text-[#374640]">Track money given, money received<br /> and bills due.</p>
         </div>
 

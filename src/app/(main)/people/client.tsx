@@ -17,6 +17,10 @@ const filters: { label: string; value: Filter }[] = [
   { label: "To pay", value: "pay" },
 ];
 
+function openNewPersonForm() {
+  window.dispatchEvent(new Event("lenden:new-person"));
+}
+
 export default function PeoplePage() {
   const { people } = usePeople();
   const { t } = useLanguage();
@@ -31,7 +35,7 @@ export default function PeoplePage() {
   return (
     <div className="min-h-screen bg-[#f4f8f5] p-0 min-[701px]:bg-[radial-gradient(#cbded2_0.8px,transparent_0.8px)] min-[701px]:[background-size:19px_19px] min-[701px]:px-5 min-[701px]:py-0">
       <div className="mx-auto flex h-dvh w-full min-h-0 flex-col overflow-hidden bg-white min-[701px]:w-[min(100%,1120px)] min-[701px]:min-h-[760px] min-[701px]:rounded-[20px] min-[701px]:border min-[701px]:border-[#d6e4da] min-[701px]:shadow-[0_16px_48px_#164c3020]">
-        <MobilePageHeader title="People" action={<Link className="grid size-10 place-items-center rounded-[10px] text-white transition hover:bg-white/10" href="/people/add" aria-label="Add person"><Icon name="plus" size={27} /></Link>} />
+        <MobilePageHeader title="People" action={<Link className="grid size-10 place-items-center rounded-[10px] text-white transition hover:bg-white/10" href="/people/add" onClick={openNewPersonForm} aria-label="Add person"><Icon name="plus" size={27} /></Link>} />
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-[15px] pb-[104px] pt-[62px] max-[700px]:px-3 max-[700px]:pb-[70px]">
           <div className="sticky top-[6px] z-[4] bg-white pb-3 pt-px">
             <label className="flex min-h-[42px] items-center gap-[9px] rounded-[10px] border border-[#d6e0d9] bg-[#fbfdfb] px-[11px] text-[#617168] shadow-[0_1px_3px_#153d2410] focus-within:border-[#57b987] focus-within:shadow-[0_0_0_3px_#dff3e6]">
@@ -60,7 +64,7 @@ export default function PeoplePage() {
           <section className="mt-3" aria-label="People list">
             {visiblePeople.length ? visiblePeople.map((person) => (
               <Link className="flex min-h-[59px] items-center gap-3 border-b border-[var(--line)]" href={`/people/${person.id}`} key={person.id}>
-                <span className={`grid size-[39px] flex-none place-items-center rounded-full text-xs font-bold ${person.direction === "pay" ? "border border-[#f0c9c9] bg-[#fff0f0] text-[var(--red-700)]" : "border border-[#cde8d6] bg-[#e1f3e7] text-[#0d694c]"}`}>{person.initials}</span>
+                <span className={`grid size-[39px] flex-none place-items-center overflow-hidden rounded-full text-xs font-bold ${person.direction === "pay" ? "border border-[#f0c9c9] bg-[#fff0f0] text-[var(--red-700)]" : "border border-[#cde8d6] bg-[#e1f3e7] text-[#0d694c]"}`}>{person.avatar ? <img className="size-full object-cover" src={person.avatar} alt="" /> : person.initials}</span>
                 <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{person.name}</span>
                 <span className="text-right">
                   <strong className={`block text-sm font-extrabold tabular-nums text-[var(--green-900)] ${person.direction === "pay" ? "text-[var(--red-700)]" : ""}`}>
@@ -89,7 +93,7 @@ export default function PeoplePage() {
               </div>
             )}
           </section>
-          <Link className="mt-auto flex min-h-[46px] items-center justify-center gap-2 rounded-[10px] bg-[#e1f7e9] px-3 py-2 text-sm font-bold text-[#075d43] transition hover:bg-[#d3f0de]" href="/people/add">
+          <Link className="mt-auto flex min-h-[46px] items-center justify-center gap-2 rounded-[10px] bg-[#e1f7e9] px-3 py-2 text-sm font-bold text-[#075d43] transition hover:bg-[#d3f0de]" href="/people/add" onClick={openNewPersonForm}>
             <Icon name="plus" size={22} />
             {t("Add person")}
           </Link>

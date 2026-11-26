@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Footer from "../../../../components/common/Footer";
 import Icon from "../../../../components/common/Icon";
 import MobilePageHeader from "../../../../components/common/MobilePageHeader";
-import { api } from "../../../../lib/api";
+import { api, auth } from "../../../../lib/api";
 import ImageCropModal from "../../../../components/common/ImageCropModal";
 
 export default function EditProfilePage() {
@@ -59,6 +59,7 @@ export default function EditProfilePage() {
     setMessage("");
     try {
       await api.updateProfile({ fullName: name, avatarUrl: avatarUrl || undefined });
+      auth.saveAvatar(avatarUrl);
       router.replace("/profile");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to save profile.");

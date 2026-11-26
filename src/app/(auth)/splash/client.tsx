@@ -15,10 +15,10 @@ export default function SplashClient() {
   }, [router]);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[radial-gradient(ellipse_at_20%_5%,#075844_0%,transparent_52%),linear-gradient(145deg,#004b3d_0%,#00604d_58%,#006a53_100%)]">
-      <div className="relative isolate min-h-screen w-full overflow-hidden [container-type:inline-size]">
+    <main className="h-dvh min-h-dvh overflow-hidden bg-[radial-gradient(ellipse_at_20%_5%,#075844_0%,transparent_52%),linear-gradient(145deg,#004b3d_0%,#00604d_58%,#006a53_100%)]">
+      <div className="relative isolate h-dvh min-h-dvh w-full overflow-hidden [container-type:inline-size]">
         <div className="pointer-events-none absolute -bottom-[14cqw] -right-[22cqw] size-[72cqw] rounded-full border border-[#2abe8f55] shadow-[0_0_0_7cqw_#0000,0_0_0_7.3cqw_#2abe8f4d,0_0_0_14cqw_#0000,0_0_0_14.3cqw_#2abe8f40,0_0_0_21cqw_#0000,0_0_0_21.3cqw_#2abe8f33]" aria-hidden="true" />
-        <div className="relative z-[1] flex min-h-screen flex-col items-center px-[6.2cqw] pb-[15cqw] pt-[14cqw] text-center">
+        <div className="relative z-[1] flex h-dvh min-h-dvh flex-col items-center px-[6.2cqw] pb-[calc(15cqw+env(safe-area-inset-bottom))] pt-[calc(14cqw+env(safe-area-inset-top))] text-center">
           <div className="w-[37.3cqw] flex-none" aria-hidden="true">
             <img src="/images/splash-logo.png" alt="Lenden logo" className="block h-auto w-full" />
           </div>
